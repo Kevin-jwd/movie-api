@@ -32,6 +32,7 @@ app.post("/movies", function (req, res) {
         like_count,
         director_id,
         genres,
+        actors,
     } = req.body;
     const movieValues = [
         title,
@@ -53,6 +54,7 @@ app.post("/movies", function (req, res) {
 
         const movieId = result.insertId;
 
+        // 장르 등록
         if (genres && genres.length > 0) {
             const genreValues = genres.map((genreId) => [movieId, genreId]);
             const genreSql =
@@ -64,13 +66,32 @@ app.post("/movies", function (req, res) {
                         message: `장르 연결 실패: ${err.message}`,
                     });
                 }
+            });
+        } else {
+            res.status(400).json({
+                message: "영화 등록 실패: 장르가 필요합니다",
+            });
+        }
+
+        // 배우 등록
+        if (actors && actors.length > 0) {
+            const actorValues = genres.map((acotrId) => [movieId, actorId]);
+            const actorSql =
+                "INSERT INTO movie_list_actor (movie_list_id, actor_id) VALUES ?";
+
+            conn.query(actorSql, [actorValues], (err) => {
+                if (err) {
+                    return res.status(500).json({
+                        message: `배우 연결 실패: ${err.message}`,
+                    });
+                }
                 res.status(200).json({
                     message: `[${title}] 영화 등록 완료`,
                 });
             });
         } else {
             res.status(400).json({
-                message: "영화 등록 실패: 장르가 필요합니다",
+                message: "영화 등록 실패: 배우가 필요합니다",
             });
         }
     });
