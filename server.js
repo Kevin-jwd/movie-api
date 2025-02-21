@@ -18,8 +18,19 @@ app.listen(port, () => {
 });
 
 // GET /movies - 전체 영화 조회
-app.get("/", (req, res) => {
-    res.send("Hello Movie API!");
+app.get("/movies", (req, res) => {
+    const sql = "SELECT * FROM movie_list";
+    conn.query(sql, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                message: `영화 목록 조회 실패 : ${err.message}`,
+            });
+        }
+        return res.status(200).json({
+            message: "영화 목록 조회 성공",
+            list: results,
+        });
+    });
 });
 
 // POST /movies - 영화 등록
