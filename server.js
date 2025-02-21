@@ -21,3 +21,21 @@ app.listen(port, () => {
 app.get("/", (req, res) => {
     res.send("Hello Movie API!");
 });
+
+// POST /movies - 영화 등록
+app.post("/movies", function (req, res) {
+    const {
+        title,
+        release_date,
+        rating,
+        description,
+        like_count,
+        director_id,
+    } = req.body;
+    const values = [title, release_date, rating, description, like_count, director_id];
+    const sql =
+        "INSERT INTO movie_list (title, release_date, rating, description, like_count, director_id) VALUES (?,?,?,?,?,?) ";
+    conn.query(sql, values, (err, result) => {
+        res.send(`영화 등록 완료 : ${title}`)
+    }) 
+});
