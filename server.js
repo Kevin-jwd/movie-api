@@ -142,7 +142,7 @@ app.post("/movies", function (req, res) {
 
 // PUT /movies/:id - 영화 정보(제목) 수정
 app.put("/movies/:id", function (req, res) {
-    const movieId = req.params.id; 
+    const movieId = req.params.id;
     const { newTitle } = req.body;
 
     if (!newTitle) {
@@ -153,7 +153,7 @@ app.put("/movies/:id", function (req, res) {
 
     // 기존 제목 조회
     const getTitleSql = "SELECT title FROM movie_list WHERE id = ?";
-    
+
     conn.query(getTitleSql, [movieId], (err, result) => {
         if (err) {
             return res.status(500).json({
@@ -188,6 +188,65 @@ app.put("/movies/:id", function (req, res) {
 
             return res.status(200).json({
                 message: `영화 제목 변경 완료: ${oldTitle} -> ${newTitle}`,
+            });
+        });
+    });
+});
+
+// DELETE /movies/:id - 영화 삭제
+app.delete("/movies/:id", function (req, res) {
+    const movieId = req.params.id;
+
+    // 영화 정보를 조회하여 제목을 가져옴
+    const selectSql = "SELECT title FROM movie_list WHERE id = ?";
+    conn.query(selectSql, [movieId], (err, result) => {
+        if (err) {
+            return res.status(500).json({
+                message: `영화 조회 실패: ${err.message}`,
+            });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                message: "영화를 찾을 수 없습니다.",
+            });
+        }
+
+        const movieTitle = result[0].title;
+
+        // 영화와 관련된 장르 및 배우 정보 삭제
+        const deleteGenreSql =
+            "DELETE FROM movie_list_genre WHERE movie_list_id = ?";
+        const deleteActorSql =
+            "DELETE FROM movie_list_actor WHERE movie_list_id = ?";
+
+        conn.query(deleteGenreSql, [movieId], (err) => {
+            if (err) {
+                return res.status(500).json({
+                    message: `장르 삭제 실패: ${err.message}`,
+                });
+            }
+
+            conn.query(deleteActorSql, [movieId], (err) => {
+                if (err) {
+                    return res.status(500).json({
+                        message: `배우 삭제 실패: ${err.message}`,
+                    });
+                }
+
+                // 영화 삭제
+                const deleteMovieSql = "DELETE FROM movie_list WHERE id = ?";
+                conn.query(deleteMovieSql, [movieId], (err) => {
+                    if (err) {
+                        return res.status(500).json({
+                            message: `영화 삭제 실패: ${err.message}`,
+                        });
+                    }
+
+                    return res.status(200).json({
+                        message: `영화 삭제 완료: ${movieTitle}`,
+                    });
+                });
             });
         });
     });
