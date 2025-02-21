@@ -53,6 +53,7 @@ app.post("/movies", function (req, res) {
         }
 
         const movieId = result.insertId;
+        let responseMessage = `[${title}] 영화 등록 완료`;
 
         // 장르 등록
         if (genres && genres.length > 0) {
@@ -66,32 +67,34 @@ app.post("/movies", function (req, res) {
                         message: `장르 연결 실패: ${err.message}`,
                     });
                 }
-            });
-        } else {
-            res.status(400).json({
-                message: "영화 등록 실패: 장르가 필요합니다",
-            });
-        }
 
-        // 배우 등록
-        if (actors && actors.length > 0) {
-            const actorValues = genres.map((acotrId) => [movieId, actorId]);
-            const actorSql =
-                "INSERT INTO movie_list_actor (movie_list_id, actor_id) VALUES ?";
+                // 배우 등록
+                if (actors && actors.length > 0) {
+                    const actorValues = actors.map((actorId) => [movieId, actorId]);
+                    const actorSql =
+                        "INSERT INTO movie_list_actor (movie_list_id, actor_id) VALUES ?";
 
-            conn.query(actorSql, [actorValues], (err) => {
-                if (err) {
-                    return res.status(500).json({
-                        message: `배우 연결 실패: ${err.message}`,
+                    conn.query(actorSql, [actorValues], (err) => {
+                        if (err) {
+                            return res.status(500).json({
+                                message: `배우 연결 실패: ${err.message}`,
+                            });
+                        }
+
+                        // 모든 등록 성공 시 응답
+                        return res.status(200).json({
+                            message: responseMessage,
+                        });
+                    });
+                } else {
+                    return res.status(400).json({
+                        message: "영화 등록 실패: 배우가 필요합니다",
                     });
                 }
-                res.status(200).json({
-                    message: `[${title}] 영화 등록 완료`,
-                });
             });
         } else {
-            res.status(400).json({
-                message: "영화 등록 실패: 배우가 필요합니다",
+            return res.status(400).json({
+                message: "영화 등록 실패: 장르가 필요합니다",
             });
         }
     });
