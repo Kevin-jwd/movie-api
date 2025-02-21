@@ -19,7 +19,31 @@ app.listen(port, () => {
 
 // GET /movies - 전체 영화 조회
 app.get("/movies", function (req, res) {
-    const sql = "SELECT * FROM movie_list";
+    const sql = `
+        SELECT 
+            m.id,
+            m.title,
+            m.release_date,
+            m.rating,
+            m.description,
+            m.like_count,
+            m.director_id,
+            GROUP_CONCAT(DISTINCT g.genre) AS genres, 
+            GROUP_CONCAT(DISTINCT a.name) AS actors 
+        FROM 
+            movie_list m
+        LEFT JOIN 
+            movie_list_genre mg ON m.id = mg.movie_list_id
+        LEFT JOIN 
+            genre g ON mg.genre_id = g.id
+        LEFT JOIN 
+            movie_list_actor ma ON m.id = ma.movie_list_id
+        LEFT JOIN 
+            actor a ON ma.actor_id = a.id
+        GROUP BY 
+            m.id
+    `;
+
     conn.query(sql, (err, results) => {
         if (err) {
             return res.status(500).json({
@@ -36,7 +60,32 @@ app.get("/movies", function (req, res) {
 // GET /movies/:id - 특정 영화 조회
 app.get("/movies/:id", function (req, res) {
     const movieId = req.params.id;
-    const sql = "SELECT * FROM movie_list WHERE id = ?";
+    const sql = `
+    SELECT 
+        m.id,
+        m.title,
+        m.release_date,
+        m.rating,
+        m.description,
+        m.like_count,
+        m.director_id,
+        GROUP_CONCAT(DISTINCT g.genre) AS genres, 
+        GROUP_CONCAT(DISTINCT a.name) AS actors 
+    FROM 
+        movie_list m
+    LEFT JOIN 
+        movie_list_genre mg ON m.id = mg.movie_list_id
+    LEFT JOIN 
+        genre g ON mg.genre_id = g.id
+    LEFT JOIN 
+        movie_list_actor ma ON m.id = ma.movie_list_id
+    LEFT JOIN 
+        actor a ON ma.actor_id = a.id
+    WHERE 
+        m.id = ?
+    GROUP BY 
+        m.id
+    `;
 
     conn.query(sql, [movieId], (err, results) => {
         if (err) {
