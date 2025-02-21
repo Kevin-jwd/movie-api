@@ -34,6 +34,7 @@ app.post("/movies", function (req, res) {
         genres,
         actors,
     } = req.body;
+
     const movieValues = [
         title,
         release_date,
@@ -42,8 +43,9 @@ app.post("/movies", function (req, res) {
         like_count,
         director_id,
     ];
+
     const movieSql =
-        "INSERT INTO movie_list (title, release_date, rating, description, like_count, director_id) VALUES (?,?,?,?,?,?) ";
+        "INSERT INTO movie_list (title, release_date, rating, description, like_count, director_id) VALUES (?,?,?,?,?,?)";
 
     conn.query(movieSql, movieValues, (err, result) => {
         if (err) {
@@ -70,7 +72,10 @@ app.post("/movies", function (req, res) {
 
                 // 배우 등록
                 if (actors && actors.length > 0) {
-                    const actorValues = actors.map((actorId) => [movieId, actorId]);
+                    const actorValues = actors.map((actorId) => [
+                        movieId,
+                        actorId,
+                    ]);
                     const actorSql =
                         "INSERT INTO movie_list_actor (movie_list_id, actor_id) VALUES ?";
 
@@ -81,7 +86,6 @@ app.post("/movies", function (req, res) {
                             });
                         }
 
-                        // 모든 등록 성공 시 응답
                         return res.status(200).json({
                             message: responseMessage,
                         });
