@@ -139,3 +139,56 @@ app.post("/movies", function (req, res) {
         }
     });
 });
+
+// PUT /movies/:id - 영화 정보(제목) 수정
+app.put("/movies/:id", function (req, res) {
+    const movieId = req.params.id; 
+    const { newTitle } = req.body;
+
+    if (!newTitle) {
+        return res.status(400).json({
+            message: "새로운 제목이 필요합니다.",
+        });
+    }
+
+    // 기존 제목 조회
+    const getTitleSql = "SELECT title FROM movie_list WHERE id = ?";
+    
+    conn.query(getTitleSql, [movieId], (err, result) => {
+        if (err) {
+            return res.status(500).json({
+                message: `영화 제목 조회 실패: ${err.message}`,
+            });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                message: "해당 ID의 영화를 찾을 수 없습니다.",
+            });
+        }
+
+        const oldTitle = result[0].title;
+
+        // 영화 제목 수정
+        const updateSql = "UPDATE movie_list SET title = ? WHERE id = ?";
+        const values = [newTitle, movieId];
+
+        conn.query(updateSql, values, (err, result) => {
+            if (err) {
+                return res.status(500).json({
+                    message: `영화 제목 수정 실패: ${err.message}`,
+                });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({
+                    message: "영화 정보 수정 실패: 제목이 변경되지 않았습니다.",
+                });
+            }
+
+            return res.status(200).json({
+                message: `영화 제목 변경 완료: ${oldTitle} -> ${newTitle}`,
+            });
+        });
+    });
+});
